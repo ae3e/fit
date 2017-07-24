@@ -265,14 +265,14 @@ function createSession(name) {
    					});
    					statistics.speeds = getStatistics(data);
    				}
-				if(this.heartrates){
-					var data = this.heartrates.data.filter(function(elt,index){
+				if(this.parameters.heartrates){
+					var data = this.parameters.heartrates.data.filter(function(elt,index){
    						return index>intervals[i].start && index<intervals[i].end;
    					});
 					statistics.heartrates = getStatistics(data);
 				}
-				if(this.cadences){
-					var data = this.cadences.data.filter(function(elt,index){
+				if(this.parameters.cadences){
+					var data = this.parameters.cadences.data.filter(function(elt,index){
    						return index>intervals[i].start && index<intervals[i].end;
    					});
 					statistics.cadences = getStatistics(data);
@@ -352,7 +352,6 @@ function sum(a,b){
 	return a+b;
 }
 
-//import MyClass from './session';
 
 //export {createSession};
 
