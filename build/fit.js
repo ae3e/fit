@@ -196,8 +196,8 @@ function createSession(name) {
 	    	   			interval.start = start;
 	    	   			interval.end = i;
 	    	   			interval.type= types[k];
-	    				interval.distance(distances[i]-distances[start]);
-	    				interval.duration(durations[i]-durations[start]);
+	    				interval.distance = distances[i]-distances[start];
+	    				interval.duration = durations[i]-durations[start];
 	    	   			intervals.push(interval);
 
 		    			start=i;
