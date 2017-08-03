@@ -70,8 +70,8 @@ function createSession(name, smooth_factor) {
 				
 				this.durations= {
 					name:"Durations",
-					data : data,
-					statistics : getStatistics(data)
+					data : data/*,
+					statistics : getStatistics(data)*/
 				};
 			}
 		},
@@ -143,6 +143,9 @@ function createSession(name, smooth_factor) {
 		calculateIntervals : function(training){
 			//training example : 15' - 10 x 200m/45" - 3' - 10 x 200m/45" - 10'
 	    	
+			
+			//Have to use regex to parse training string
+			
 	    	var timeToSec = function(time){
 	    		var indexM = time.indexOf("'");
 	    		var indexS = time.indexOf("\"");
@@ -275,18 +278,22 @@ function createSession(name, smooth_factor) {
    			
    			for(var i=0;i<intervals.length;i++){
    				var statistics = {};
-   				if(this.altitudes){
-   					var data = this.altitudes.data.filter(function(elt,index){
-   						return index>intervals[i].start && index<intervals[i].end;
-   					});
-   					statistics.altitudes = getStatistics(data);
-   				}
    				if(this.speeds){
    					var data = this.speeds.data.filter(function(elt,index){
    						return index>intervals[i].start && index<intervals[i].end;
    					});
    					statistics.speeds = getStatistics(data);
    				}
+   				for(var param in this.parameters){
+   					var data = this.parameters[param].data.filter(function(elt,index){
+   						return index>intervals[i].start && index<intervals[i].end;
+   					});
+   					statistics[param] = getStatistics(data);
+   				}
+   				/*if(this.parameters.altitudes){
+   					
+   				}
+   				
 				if(this.parameters.heartrates){
 					var data = this.parameters.heartrates.data.filter(function(elt,index){
    						return index>intervals[i].start && index<intervals[i].end;
@@ -298,7 +305,7 @@ function createSession(name, smooth_factor) {
    						return index>intervals[i].start && index<intervals[i].end;
    					});
 					statistics.cadences = getStatistics(data);
-				}
+				}*/
 				intervals[i].statistics = statistics;
    			}
    			this.intervals = intervals;
@@ -314,7 +321,7 @@ function createSession(name, smooth_factor) {
 					var data = [];
 					geojson.features[0].geometry.coordinates.forEach(function(elt,index,array){data.push(elt[2]);});
 					
-					this.altitudes= {
+					this.parameters.altitudes= {
 						name:"Altitudes",
 						data : data,
 						statistics : getStatistics(data)

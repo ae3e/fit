@@ -28,8 +28,7 @@ export function createSession(name, smooth_factor) {
 				
 				this.durations= {
 					name:"Durations",
-					data : data,
-					statistics : getStatistics(data)
+					data : data
 				};
 			}
 		},
@@ -236,30 +235,18 @@ export function createSession(name, smooth_factor) {
    			
    			for(var i=0;i<intervals.length;i++){
    				var statistics = {};
-   				if(this.altitudes){
-   					var data = this.altitudes.data.filter(function(elt,index){
-   						return index>intervals[i].start && index<intervals[i].end;
-   					});
-   					statistics.altitudes = getStatistics(data);
-   				}
    				if(this.speeds){
    					var data = this.speeds.data.filter(function(elt,index){
    						return index>intervals[i].start && index<intervals[i].end;
    					});
    					statistics.speeds = getStatistics(data);
    				}
-				if(this.parameters.heartrates){
-					var data = this.parameters.heartrates.data.filter(function(elt,index){
+   				for(var param in this.parameters){
+   					var data = this.parameters[param].data.filter(function(elt,index){
    						return index>intervals[i].start && index<intervals[i].end;
    					});
-					statistics.heartrates = getStatistics(data);
-				}
-				if(this.parameters.cadences){
-					var data = this.parameters.cadences.data.filter(function(elt,index){
-   						return index>intervals[i].start && index<intervals[i].end;
-   					});
-					statistics.cadences = getStatistics(data);
-				}
+   					statistics[param] = getStatistics(data);
+   				}
 				intervals[i].statistics = statistics;
    			}
    			this.intervals = intervals;
@@ -275,7 +262,7 @@ export function createSession(name, smooth_factor) {
 					var data = [];
 					geojson.features[0].geometry.coordinates.forEach(function(elt,index,array){data.push(elt[2]);});
 					
-					this.altitudes= {
+					this.parameters.altitudes= {
 						name:"Altitudes",
 						data : data,
 						statistics : getStatistics(data)
