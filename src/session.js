@@ -1,6 +1,10 @@
 import {getStatistics} from './utils.js';
+import {getSMA} from './utils.js';
 
-export function createSession(name) {
+
+
+export function createSession(name, smooth_factor) {
+
 	return {
 		name : name,
 		type : 0,
@@ -60,9 +64,13 @@ export function createSession(name) {
 	        	}
 	        });
 	        
+	        var smooth = 5;
+	        if(smooth_factor!=null){
+	        	smooth = smooth_factor;
+	        }
 	        this.distances= {
 				name:"Distances",
-				data : data
+				data : smooth===0?data:getSMA(data,smooth)
 			};
 		},
 		
@@ -93,6 +101,9 @@ export function createSession(name) {
 		calculateIntervals : function(training){
 			//training example : 15' - 10 x 200m/45" - 3' - 10 x 200m/45" - 10'
 	    	
+			
+			//Have to use regex to parse training string
+			
 	    	var timeToSec = function(time){
 	    		var indexM = time.indexOf("'");
 	    		var indexS = time.indexOf("\"");

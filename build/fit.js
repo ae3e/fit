@@ -27,8 +27,26 @@ function getStatistics(values){
  * @param n {Integer} number of values
  * @return {Object} the converted values
  */
+function getSMA(values, n){
+	
+	var sma = [];
+	sma.push(values[0]);
+	for(var i=1;i<values.length;i++){
+		var value;
+		if(i<n){
+			value = values.slice(0,i+1).reduce(function(a, b) { return a + b })/values.slice(0,i+1).length;
+		}else{
+			value = values.slice(i+1-n,i+1).reduce(function(a, b) { return a + b })/n;
+			//console.log(values.toString()+" "+values.slice(i+1-n,i+1).length)+"\n";
+		}
+		sma.push(value);
+	}
 
-function createSession(name) {
+	return sma;
+}
+
+function createSession(name, smooth_factor) {
+
 	return {
 		name : name,
 		type : 0,
@@ -88,9 +106,13 @@ function createSession(name) {
 	        	}
 	        });
 	        
+	        var smooth = 5;
+	        if(smooth_factor!=null){
+	        	smooth = smooth_factor;
+	        }
 	        this.distances= {
 				name:"Distances",
-				data : data
+				data : smooth===0?data:getSMA(data,smooth)
 			};
 		},
 		
