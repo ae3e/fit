@@ -211,7 +211,21 @@ function createSession(name, smooth_factor) {
     					return;
     				}
     				phases[i].indexOf("m")<0?intt.push(timeToSec(phases[i])):intt.push(phases[i]);
-	    			types.push("?");
+    				switch(i){
+    				case 0:
+    					types.push("W"); //Warm up
+    					break;
+    				case phases.length-1:
+    					types.push("C"); //Cool down
+    					break;
+    				default:
+    					if (i%2 == 0){
+    						types.push("R"); //Interval
+    					}else{
+    						types.push("I"); //Rest
+    					}
+    				}
+	    			//types.push("?");
 	    		}
 	    	}
 	    	
