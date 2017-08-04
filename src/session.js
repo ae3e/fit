@@ -14,7 +14,7 @@ export function createSession(name, smooth_factor) {
 		distances : {},
 		//contains speeds, heart rates, altitudes, cadences, temperatures,...
 		parameters : {},
-		intervals : {},
+		intervals : [],
 		
 		/**
 		* Calculate durations
@@ -103,6 +103,8 @@ export function createSession(name, smooth_factor) {
 			
 			//Have to use regex to parse training string
 			
+			var regex = /(^(\d+')|(\d+")|(\d+'\d+"))|(^\d+m)/; //1000m or 15'30" //other version (^([0-5][0-9]'|[0-9]')?([0-5][0-9]"|[0-9]")?)|(^\d+m)
+			
 	    	var timeToSec = function(time){
 	    		var indexM = time.indexOf("'");
 	    		var indexS = time.indexOf("\"");
@@ -119,7 +121,7 @@ export function createSession(name, smooth_factor) {
 		    		}
 	    		}
 	    		return duration;
-	    	}
+	    	};
 	    	var intt = [];
 	    	var types = [];
 	    	var phases = training.split("-");
@@ -129,9 +131,17 @@ export function createSession(name, smooth_factor) {
 	    		
 	    		if(sets.length==2){
 	    			//10 x 200m/45"
+	    			if(!Number.isInteger(parseInt(sets[0]))){
+	    				console.log("Number of repetitions is not an integer (Phase "+i+")");
+	    				return;
+	    			}
 	    			var repetition = parseInt(sets[0]);
 	    			var mode = sets[1].split("/");
 	    			if(mode.length>1){
+	    				if(!regex.test(mode[0]) || !regex.test(mode[1])){
+	    					console.log("Fast or slow interval to repeat is incorrect (Phase "+i+")");
+	    					return;
+	    				}
 	    				var fast = mode[0];
 		    			var slow = mode[1];
 		    			for (var j=0;j<repetition;j++){
@@ -142,6 +152,10 @@ export function createSession(name, smooth_factor) {
 		    			}
 	    			}else{
 	    				//10 x 1000m or 10 x 1'
+	    				if(!regex.test(mode[0])){
+	    					console.log("Interval to repeat is incorrect (Phase "+i+")");
+	    					return;
+	    				}
 	    				for (var j=0;j<repetition;j++){
 	    					mode[0].indexOf("m")<0?intt.push(timeToSec(mode[0])):intt.push(mode[0]);
 	    					types.push("I");
@@ -150,9 +164,12 @@ export function createSession(name, smooth_factor) {
 	    			
 	    		}else{
 	    			//1000m or 15'
-	    			phases[i].indexOf("m")<0?intt.push(timeToSec(phases[i])):intt.push(phases[i]);
+	    			if(!regex.test(phases[i])){
+    					console.log("Phase "+i+" is incorrect");
+    					return;
+    				}
+    				phases[i].indexOf("m")<0?intt.push(timeToSec(phases[i])):intt.push(phases[i]);
 	    			types.push("?");
-	    			
 	    		}
 	    	}
 	    	
@@ -189,7 +206,7 @@ export function createSession(name, smooth_factor) {
 		    			}
 		    			if(isNaN(intt[k])){
 		    				dist=true;
-		    				step=distances[interval.end]+parseInt(intt[k].split()[0])/1000
+		    				step=distances[interval.end]+parseInt(intt[k].split()[0])/1000;
 		    			}else{
 		    				dist=false;
 		    				step=durations[interval.end]+intt[k]*1000;
@@ -214,7 +231,7 @@ export function createSession(name, smooth_factor) {
 		    			}
 		    			if(isNaN(intt[k])){
 		    				dist=true;
-		    				step=distances[interval.end]+parseInt(intt[k].split()[0])/1000
+		    				step=distances[interval.end]+parseInt(intt[k].split()[0])/1000;
 		    			}else{
 		    				dist=false;
 		    				step=durations[interval.end]+intt[k]*1000;

@@ -56,7 +56,7 @@ function createSession(name, smooth_factor) {
 		distances : {},
 		//contains speeds, heart rates, altitudes, cadences, temperatures,...
 		parameters : {},
-		intervals : {},
+		intervals : [],
 		
 		/**
 		* Calculate durations
@@ -70,8 +70,7 @@ function createSession(name, smooth_factor) {
 				
 				this.durations= {
 					name:"Durations",
-					data : data/*,
-					statistics : getStatistics(data)*/
+					data : data
 				};
 			}
 		},
@@ -146,6 +145,8 @@ function createSession(name, smooth_factor) {
 			
 			//Have to use regex to parse training string
 			
+			var regex = /(^(\d+')|(\d+")|(\d+'\d+"))|(^\d+m)/; //1000m or 15'30" //other version (^([0-5][0-9]'|[0-9]')?([0-5][0-9]"|[0-9]")?)|(^\d+m)
+			
 	    	var timeToSec = function(time){
 	    		var indexM = time.indexOf("'");
 	    		var indexS = time.indexOf("\"");
@@ -172,9 +173,17 @@ function createSession(name, smooth_factor) {
 	    		
 	    		if(sets.length==2){
 	    			//10 x 200m/45"
+	    			if(!Number.isInteger(parseInt(sets[0]))){
+	    				console.log("Number of repetitions is not an integer (Phase "+i+")");
+	    				return;
+	    			}
 	    			var repetition = parseInt(sets[0]);
 	    			var mode = sets[1].split("/");
 	    			if(mode.length>1){
+	    				if(!regex.test(mode[0]) || !regex.test(mode[1])){
+	    					console.log("Fast or slow interval to repeat is incorrect (Phase "+i+")");
+	    					return;
+	    				}
 	    				var fast = mode[0];
 		    			var slow = mode[1];
 		    			for (var j=0;j<repetition;j++){
@@ -185,6 +194,10 @@ function createSession(name, smooth_factor) {
 		    			}
 	    			}else{
 	    				//10 x 1000m or 10 x 1'
+	    				if(!regex.test(mode[0])){
+	    					console.log("Interval to repeat is incorrect (Phase "+i+")");
+	    					return;
+	    				}
 	    				for (var j=0;j<repetition;j++){
 	    					mode[0].indexOf("m")<0?intt.push(timeToSec(mode[0])):intt.push(mode[0]);
 	    					types.push("I");
@@ -193,9 +206,12 @@ function createSession(name, smooth_factor) {
 	    			
 	    		}else{
 	    			//1000m or 15'
-	    			phases[i].indexOf("m")<0?intt.push(timeToSec(phases[i])):intt.push(phases[i]);
+	    			if(!regex.test(phases[i])){
+    					console.log("Phase "+i+" is incorrect");
+    					return;
+    				}
+    				phases[i].indexOf("m")<0?intt.push(timeToSec(phases[i])):intt.push(phases[i]);
 	    			types.push("?");
-	    			
 	    		}
 	    	}
 	    	
@@ -290,22 +306,6 @@ function createSession(name, smooth_factor) {
    					});
    					statistics[param] = getStatistics(data);
    				}
-   				/*if(this.parameters.altitudes){
-   					
-   				}
-   				
-				if(this.parameters.heartrates){
-					var data = this.parameters.heartrates.data.filter(function(elt,index){
-   						return index>intervals[i].start && index<intervals[i].end;
-   					});
-					statistics.heartrates = getStatistics(data);
-				}
-				if(this.parameters.cadences){
-					var data = this.parameters.cadences.data.filter(function(elt,index){
-   						return index>intervals[i].start && index<intervals[i].end;
-   					});
-					statistics.cadences = getStatistics(data);
-				}*/
 				intervals[i].statistics = statistics;
    			}
    			this.intervals = intervals;
