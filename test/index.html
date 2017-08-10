@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="../build/fit.js"></script>
+	<script type="text/javascript" src="https://rawgit.com/mapbox/togeojson/master/togeojson.js"></script>
+</head>
+<body>
+	<div id='myDiv'></div>
+	<script>
+		
+	var url = "https://gist.githubusercontent.com/ae3e/3d4a389c4942fc1468e183dbb8a9396a/raw/Lemoncello.gpx";
+    //var url= "https://gist.githubusercontent.com/ae3e/3d4a389c4942fc1468e183dbb8a9396a/raw/Albon.gpx";
+		/*fetch(url)
+		.then(function(response) {
+		  return response.text();
+		})
+		.then(function(text) {
+			var parser = new DOMParser();
+	        var xmlDoc = parser.parseFromString(text, "text/xml");
+	        
+	        var data = toGeoJSON.gpx(xmlDoc);
+	        data.features[0].properties.times = data.features[0].properties.coordTimes;
+	        data.features[0].properties.heartrates = data.features[0].properties.heartRates;
+	        console.log(data);
+	        
+	        var ses= fit.createSession("Toto").fromGeoJSON(data);
+	        console.log(ses);
+	        ses.calculateIntervals("3000m-3000m-2000m");
+	        console.log(ses);
+		});*/
+		
+		
+		var url="http://cors4js.appspot.com/?url=https://www.strava.com/api/v3/activities/828912300/streams/latlng,time,cadence,heartrate,altitude?access_token=7fde9934c44918482d3870c7c64734792b313ffb";
+		fetch(url)
+		.then(function(response) {
+		  return response.json();
+		})
+		.then(function(data) {
+			console.log(data);
+			var geojson = {
+                    type : "FeatureCollection",
+                    features : []
+                };
+            	
+            	var feature = {
+                    type : "Feature",
+                    geometry : {
+                        type : "LineString",
+                        coordinates:[]
+                    },
+                    properties : {
+                    	name : "todo",
+                        times : [],
+                        heartrates : [],
+                        cadences : []
+                    }
+                };
+			
+            	var t0=0;
+			for (var i=0;i<data.length;i++){
+        		switch(data[i].type){
+            		case "latlng":
+            			feature.geometry.coordinates = data[i].data;
+            			break;
+            		case "time":
+            			feature.properties.times = data[i].data.map(function (elt){return new Date(t0+elt*1000);});
+            			break;
+            		case "heartrate":
+            			feature.properties.heartrates = data[i].data;
+            			break;
+            		case "altitude":
+            			feature.properties.coordinates = feature.geometry.coordinates.map(function(elt,index,array){elt.push(data[i].data[index]);return elt;});
+            			break;
+            		case "cadence":
+            			feature.properties.cadences = data[i].data;
+            			break;
+        		}
+        	}
+			
+			geojson.features.push(feature);
+	        
+	       console.log(geojson);
+	       
+	       var session= fit.createSession("Toto").fromGeoJSON(geojson);
+	       session.calculateIntervals("qsd-8x30\"/30\"-3'-8x30\"/30\"-10'");
+	       //session.calculateIntervals("10x30\"/30\"");
+	        console.log(session);
+	        
+	        var distance = 0,duration=0;
+			for(var i=0;i<session.intervals.length;i++){
+				if(session.intervals[i].type=="I"){
+					distance = distance + session.intervals[i].distance;
+					duration = duration + session.intervals[i].duration;
+				}
+			}
+			console.log(distance/(duration/1000/60/60)+" km/h");
+			
+
+			console.log(session.parameters.altitudes.statistics.min+" "+session.parameters.altitudes.statistics.max);
+	        console.log(session.times.data[0]+" "+session.times.data[session.times.data.length-1]);
+	        console.log(session.durations.data[session.durations.data.length-1]/1000/60);
+	        console.log(session.distances.data[session.distances.data.length-1]);
+	        
+	        console.log(session.parameters.heartrates.statistics.min+" "+session.parameters.heartrates.statistics.max);
+	        console.log(session.speeds.statistics.min+" "+session.speeds.statistics.max);
+			
+		});
+		/*console.log(fit.sum(4,6));
+		var ses = fit.createSession("Toto");
+		console.log(ses);*/
+	</script>
+</body>
+</html>
